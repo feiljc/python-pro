@@ -20,11 +20,11 @@ class Spider(object):
         self.get_team_ids()
         # 循环爬取每一支队的比赛数据
         data = []
-        for i, [team_id, team_name] in enumerate(self.team_list):
+        for i, [team_data] in enumerate(self.team_list):
             # if i == 1:
             #    break
-            print(i, team_id, team_name)
-            df = self.get_team_data(team_id, team_name)
+            print(i, team_data)
+            df = self.get_team_data(team_data)
             data.append(df)
         output = pd.concat(data)
         output.reset_index(drop=True, inplace=True)
@@ -56,22 +56,31 @@ class Spider(object):
                 #team_id = int(team.find_element_by_xpath(".//a").get_attribute('href').split('/')[-1].split('.')[0])
                 #team_name = team.find_element_by_xpath(".//a").text
                 print(team_id, team_name)
-                data.append([team_id, team_name])
+                data.append([team_id + team_name])
         self.team_list = data
         # self.team_list = pd.DataFrame(data, columns=['team_name', 'team_id'])
         # self.team_list.to_excel('国家队ID.xlsx', index=False)
 
-    def get_team_data(self, team_id, team_name):
+    def get_team_data(self, team_data):
         """获取一个国家队的比赛数据。TODO：没有实现翻页"""
-        url = 'http://zq.win007.com/cn/team/CTeamSche/%d.html' % team_id
+        url = 'http://op1.win007.com/oddslist/' + team_data[0] +'.htm'
         self.driver.get(url)
 
-        table = self.driver.find_element_by_xpath("//div[@id='Tech_schedule' and @class='data']")
-        matches = table.find_elements_by_xpath(".//tr")
-        print(len(matches))
+        row = self.driver.find_element_by_xpath("//*[@id='oddstr_1129']")
+        print(row)
+        cells = row.findChildren('td')
+        for cell in cells:
+            onclick = cell.get_attribute("onclick")
+        list = []
+        #oddstd_onclick = oddstd.get_attribute("onclick")
+        #print(oddstd_onclick)
+        #matches = table.find_elements_by_xpath(".//tr")
 
+        #td_onclick = matche_td.get_attribute("onclick")
+        #print(td_onclick)
         # 抓取比赛数据，并保存成DataFrame
         data = []
+        """
         for i, match in enumerate(matches):
             if i == 0:
                 headers = match.find_elements_by_xpath(".//th")
@@ -91,6 +100,7 @@ class Spider(object):
                 data.append([cup, match_time, home_team, away_team, fs_A, fs_B, team_name])
             except:
                 break
+        """
         df = pd.DataFrame(data, columns=['赛事', '时间', '主队', '客队', '主队进球', '客队进球', '国家队名'])
         return df
 
