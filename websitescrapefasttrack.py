@@ -1,8 +1,29 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function, division
+
+from datetime import datetime, timedelta
+
+from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
+
+
+
+def is_chinese(string):
+    """
+    检查整个字符串是否包含中文
+    :param string: 需要检查的字符串
+    :return: bool
+    """
+    for ch in string:
+        if u'\u4e00' <= ch <= u'\u9fff':
+            return True
+
+    return False
 
 
 class Spider(object):
@@ -15,25 +36,169 @@ class Spider(object):
         self.verificationErrors = []
         self.accept_next_alert = True
 
-    def get_all_team_data(self):
-        # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
-        self.get_team_ids()
-        # 循环爬取每一支队的比赛数据
-        data = []
-        for i, [team_data] in enumerate(self.team_list):
-            # if i == 1:
-            #    break
-            print(i, team_data)
-            df = self.get_team_data(team_data)
-            data.append(df)
-        output = pd.concat(data)
-        output.reset_index(drop=True, inplace=True)
-        # print(output)
-        output.to_csv('data_2018WorldCup.csv', index=False, encoding='utf-8')
-        self.driver.close()
+    def get_team_odd_oddslist(self, team_data):
+        url = 'http://op1.win007.com/oddslist/' + team_data[0] + '.htm'
+        # 打开chrome浏览器（需提前安装好chromedriver）
+        browser = webdriver.Chrome()
+        #print("正在打开网页...")
+        browser.get(url)
+        #print("等待网页响应...")
+        # 需要等一下，直到页面加载完成
+        wait = WebDriverWait(browser, 10)
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "tcenter")))
 
-    def get_team_ids(self):
-        main_url = 'http://jc.win007.com/schedule.aspx?d=2021-08-09'
+        #print("正在获取网页数据...")
+        soup = BeautifulSoup(browser.page_source, "lxml")
+        browser.close()
+
+        oddstr_1129 = soup.find('tr', id='oddstr_1129')
+        oddstds_1129 = oddstr_1129.findAll("td", onclick=True)
+
+        oddurl = "http://op1.win007.com"
+        for oddstd in oddstds_1129:
+            data = oddstd.get('onclick')
+            data = data.split("'")
+            oddurl += data[1]
+            break
+
+        #print(oddurl)
+
+        return oddurl
+
+    def get_team_odd_OddsHistory(self, team_data, oddurl):
+        # 打开chrome浏览器（需提前安装好chromedriver）
+        browser = webdriver.Chrome()
+        # browser = webdriver.PhantomJS()
+        #print("正在打开网页...")
+        browser.get(oddurl)
+
+        #print("等待网页响应...")
+        # 需要等一下，直到页面加载完成
+        wait = WebDriverWait(browser, 10)
+        wait.until(EC.presence_of_element_located((By.ID, "odds")))
+
+        #print("正在获取网页数据...")
+        soup = BeautifulSoup(browser.page_source, "lxml")
+        browser.close()
+
+        oddstrs = soup.findAll('tr')
+        #print(oddstrs)
+
+        odddatas = []
+        for oddstr in oddstrs:
+            oddstds = oddstr.findAll("td")
+            odddata = []
+            for oddstd in oddstds:
+                oddstd_text = oddstd.text
+
+                if oddstd_text.find('(初盘)') >= 0:
+                    oddstd_text = oddstd_text.replace('(初盘)', '')
+                if is_chinese(oddstd_text):
+                    break
+                odddata.append(oddstd_text)
+
+            if len(odddata) > 0:
+                odddata[-1] = str(datetime.now().year) + '-' + odddata[-1][-11:]
+                del odddata[3: 10]
+                odddatas.append(odddata)
+
+        #print(odddatas)
+        #print(team_data)
+        team_data += odddatas[-1][0:3]
+        team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
+        for odd_data in odddatas:
+            odd_data_s = datetime.strptime(odd_data[-1], '%Y-%m-%d %H:%M')
+            if odd_data_s <= team_data_s:
+                #print(odd_data_s)
+                #print(team_data_s)
+                team_data += odd_data[0:3]
+                break
+        print(team_data)
+        return 1
+
+    def get_team_odd_data(self, team_data):
+        oddurl = self.get_team_odd_oddslist(team_data)
+        self.get_team_odd_OddsHistory(team_data, oddurl)
+        return 1
+
+    #=========================================================================================================
+    def get_team_asian_asianlist(self, team_data):
+        url = 'http://vip.win007.com/AsianOdds_n.aspx?id=' + team_data[0]
+        # 打开chrome浏览器（需提前安装好chromedriver）
+        browser = webdriver.Chrome()
+        #print("正在打开网页...")
+        browser.get(url)
+        #print("等待网页响应...")
+        # 需要等一下，直到页面加载完成
+        wait = WebDriverWait(browser, 10)
+        wait.until(EC.presence_of_element_located((By.ID, "odds")))
+
+        #print("正在获取网页数据...")
+        soup = BeautifulSoup(browser.page_source, "lxml")
+        browser.close()
+
+        oddurl = "http://vip.win007.com"
+
+        asiantrs = soup.findAll('tr')
+        for asiantr in asiantrs:
+            asiantds = asiantr.findAll('td')
+            if asiantds[0].text != '澳门':
+                continue
+            else:
+                for asiantd in asiantds:
+                    if asiantd.text.find('详') >= 0:
+                        asianas = asiantd.findAll('a')
+                        oddurl += asianas[0]['href']
+                        break
+                break
+            print(oddurl)
+        return oddurl
+
+    def get_team_odd_asianHistory(self, team_data, oddurl):
+        # 打开chrome浏览器（需提前安装好chromedriver）
+        browser = webdriver.Chrome()
+        # browser = webdriver.PhantomJS()
+        print("正在打开网页...")
+        browser.get(oddurl)
+
+        print("等待网页响应...")
+        # 需要等一下，直到页面加载完成
+        wait = WebDriverWait(browser, 10)
+        wait.until(EC.presence_of_element_located((By.ID, "odds")))
+
+        print("正在获取网页数据...")
+        soup = BeautifulSoup(browser.page_source, "lxml")
+        browser.close()
+
+        oddstrs = soup.findAll('tr')
+        #print(oddstrs)
+
+        odddatas = []
+        for oddstr in oddstrs:
+            #print(oddstr.text)
+            if oddstr.text.find('即') >= 0:
+                odddatas.append(oddstr.text)
+
+        team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
+        for odddata in odddatas:
+            odddatas = odddata.split()
+            print(odddata)
+        return 1
+
+    def get_team_asian_data(self, team_data):
+        oddurl = self.get_team_asian_asianlist(team_data)
+        self.get_team_odd_asianHistory(team_data, oddurl)
+        return 1
+    # =========================================================================================================
+
+    def get_team_data(self, team_data):
+        #self.get_team_odd_data(team_data)
+        self.get_team_asian_data(team_data)
+        return 1
+
+    def get_team_ids(self, date_str):
+        main_url = 'http://jc.win007.com/schedule.aspx?d=' + date_str
+        date_s = datetime.strptime(date_str, '%Y-%m-%d')
         self.driver.get(main_url)
         teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
@@ -52,58 +217,31 @@ class Spider(object):
                 team_name = team_name[1:8]
                 del team_name[2]
                 del team_name[4]
-
-                #team_id = int(team.find_element_by_xpath(".//a").get_attribute('href').split('/')[-1].split('.')[0])
-                #team_name = team.find_element_by_xpath(".//a").text
-                print(team_id, team_name)
+                #print(team_id, team_name)
+                if team_name[1] >= '16:00':
+                    team_name[1] = date_str + ' ' + team_name[1]
+                else:
+                    datetime_object = (date_s + timedelta(days=1)).strftime("%Y-%m-%d")
+                    team_name[1] = str(datetime_object) + ' ' + team_name[1]
                 data.append([team_id + team_name])
         self.team_list = data
         # self.team_list = pd.DataFrame(data, columns=['team_name', 'team_id'])
         # self.team_list.to_excel('国家队ID.xlsx', index=False)
 
-    def get_team_data(self, team_data):
-        """获取一个国家队的比赛数据。TODO：没有实现翻页"""
-        url = 'http://op1.win007.com/oddslist/' + team_data[0] +'.htm'
-        self.driver.get(url)
-
-        row = self.driver.find_element_by_xpath("//*[@id='oddstr_1129']")
-        print(row)
-        cells = row.findChildren('td')
-        for cell in cells:
-            onclick = cell.get_attribute("onclick")
-        list = []
-        #oddstd_onclick = oddstd.get_attribute("onclick")
-        #print(oddstd_onclick)
-        #matches = table.find_elements_by_xpath(".//tr")
-
-        #td_onclick = matche_td.get_attribute("onclick")
-        #print(td_onclick)
-        # 抓取比赛数据，并保存成DataFrame
+    def get_all_team_data(self):
+        # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
+        self.get_team_ids('2021-08-09')
+        # 循环爬取每一支队的比赛数据
         data = []
-        """
-        for i, match in enumerate(matches):
-            if i == 0:
-                headers = match.find_elements_by_xpath(".//th")
-                h1, h2, h3, h4, h5 = headers[0].text, headers[1].text, headers[2].text, headers[3].text, headers[4].text
-                print(h1, h2, h3, h4, h5)
-                continue
-            try:
-                info = match.find_elements_by_xpath(".//td")
-                cup = str(info[0].text.encode('utf-8'))
-                match_time = str(info[1].text.encode('utf-8'))
-                home_team = str(info[2].text.encode('utf-8'))
-                fts = info[3].text
-                # print('-', cup, '-')
-                fs_A, fs_B = int(fts.split('-')[0]), int(fts.split('-')[1])
-                away_team = str(info[4].text.encode('utf-8'))
-                print(cup, match_time, home_team, away_team, fs_A, fs_B)
-                data.append([cup, match_time, home_team, away_team, fs_A, fs_B, team_name])
-            except:
-                break
-        """
-        df = pd.DataFrame(data, columns=['赛事', '时间', '主队', '客队', '主队进球', '客队进球', '国家队名'])
-        return df
-
+        for i, [team_data] in enumerate(self.team_list):
+            print(i, team_data)
+            df = self.get_team_data(team_data)
+            data.append(df)
+        #output = pd.concat(data)
+        #output.reset_index(drop=True, inplace=True)
+        # print(output)
+        #output.to_csv('data_2018WorldCup.csv', index=False, encoding='utf-8')
+        self.driver.close()
 
 if __name__ == "__main__":
     spider = Spider()

@@ -21,10 +21,19 @@ print("正在获取网页数据...")
 soup = BeautifulSoup(browser.page_source, "lxml")
 browser.close()
 
-# 表头和表数据
 oddstr_1129 = soup.find('tr', id = 'oddstr_1129')
 
-# 得到表头数据
-oddstd_1129 = oddstr_1129.findAll("td")
+oddstds_1129 = oddstr_1129.findAll("td", onclick=True)
 
-print(oddstd_1129)
+for oddstd in oddstds_1129:
+    data = oddstd.get('onclick')
+    data = data.split("'")
+    print(data[1])
+
+
+
+
+
+
+
+
