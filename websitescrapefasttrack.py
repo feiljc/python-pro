@@ -214,6 +214,7 @@ class Spider(object):
 
     def get_team_ids(self, date_str):
         main_url = 'http://jc.win007.com/schedule.aspx?d=' + date_str
+        print(main_url)
         date_s = datetime.strptime(date_str, '%Y-%m-%d')
         self.driver.get(main_url)
         teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
@@ -249,28 +250,35 @@ class Spider(object):
 
     def get_all_team_data(self):
         # 循环爬取每一支队的比赛数据
-        data = []
-        datas = []
+
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
-        datestart = '2021-08-09'
-        dateend = '2021-08-16'
-        self.get_team_ids(datestart)
-        for i, [team_data] in enumerate(self.team_list):
-            #print(i, team_data)
-            self.get_team_data(team_data)
-            data.append(team_data)
-        print('=========================================================')
-        print(data)
-        df = pd.DataFrame(data,
-                          columns=['赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
-                                   '初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'])
-        datas.append(df)
+
+        datestartstr = '2021-08-11'
+        dateendstr = '2021-08-16'
+        datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
+        dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
+
+        datas = []
+        while datestart <= dateend:
+            data = []
+            self.get_team_ids(datestart.strftime('%Y-%m-%d'))
+            for i, [team_data] in enumerate(self.team_list):
+                #print(i, team_data)
+                self.get_team_data(team_data)
+                data.append(team_data)
+            print('=========================================================')
+            #print(data)
+            df = pd.DataFrame(data,
+                              columns=['赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
+                                       '初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'])
+            datas.append(df)
+            datestart += timedelta(days=1)
+        self.driver.close()
         output = pd.concat(datas)
         output.reset_index(drop=True, inplace=True)
         # print(output)
-        output.to_csv('data_'+ datestart + '_' + dateend + '.csv', index=False, encoding='utf-8')
-        self.driver.close()
-        print(datestart + 'to' + dateend + 'over')
+        output.to_csv('data_'+ datestartstr + '_' + dateendstr + '.csv', index=False, encoding='utf-8')
+        print(datestartstr + 'to' + dateendstr + 'over')
 
 if __name__ == "__main__":
     spider = Spider()
