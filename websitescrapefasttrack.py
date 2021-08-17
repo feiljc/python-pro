@@ -113,7 +113,7 @@ class Spider(object):
                 #print(team_data_s)
                 team_data += odd_data[0:3]
                 break
-        print(team_data)
+        #print(team_data)
         return 1
 
     def get_team_odd_data(self, team_data):
@@ -151,22 +151,22 @@ class Spider(object):
                         oddurl += asianas[0]['href']
                         break
                 break
-            print(oddurl)
+            #print(oddurl)
         return oddurl
 
     def get_team_odd_asianHistory(self, team_data, oddurl):
         # 打开chrome浏览器（需提前安装好chromedriver）
         browser = webdriver.Chrome()
         # browser = webdriver.PhantomJS()
-        print("正在打开网页...")
+        #print("正在打开网页...")
         browser.get(oddurl)
 
-        print("等待网页响应...")
+        #print("等待网页响应...")
         # 需要等一下，直到页面加载完成
         wait = WebDriverWait(browser, 10)
         wait.until(EC.presence_of_element_located((By.ID, "odds")))
 
-        print("正在获取网页数据...")
+        #print("正在获取网页数据...")
         soup = BeautifulSoup(browser.page_source, "lxml")
         browser.close()
 
@@ -179,10 +179,18 @@ class Spider(object):
             if oddstr.text.find('即') >= 0:
                 odddatas.append(oddstr.text)
 
+        team_data += odddatas[-1].split()[0:3]
         team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
-        for odddata in odddatas:
-            odddatas = odddata.split()
-            print(odddata)
+        itercars = iter(odddatas)
+        next(itercars)
+        for odddata in itercars:
+            odddatastr = odddata.split('\n')
+            #print(odddatastr)
+            odd_data_s = datetime.strptime(str(datetime.now().year) + '-' + odddatastr[4], '%Y-%m-%d %H:%M')
+            if odd_data_s <= team_data_s:
+                team_data += odddatastr[1:4]
+                break
+        #print(team_data)
         return 1
 
     def get_team_asian_data(self, team_data):
@@ -192,9 +200,17 @@ class Spider(object):
     # =========================================================================================================
 
     def get_team_data(self, team_data):
-        #self.get_team_odd_data(team_data)
+        self.get_team_odd_data(team_data)
         self.get_team_asian_data(team_data)
-        return 1
+        del team_data[0]
+        for i, value in enumerate(team_data):
+            if (6 <= i <= 12) or (14 <= i <= 15) or i == 17:
+                value = float(value)
+            elif i == 3 or i == 4:
+                value = int(value)
+            else:
+                value = str(value.encode('utf-8'))
+        return team_data
 
     def get_team_ids(self, date_str):
         main_url = 'http://jc.win007.com/schedule.aspx?d=' + date_str
@@ -217,6 +233,9 @@ class Spider(object):
                 team_name = team_name[1:8]
                 del team_name[2]
                 del team_name[4]
+                team_name_score = team_name[3].split('-')
+                team_name[3] = team_name_score[0]
+                team_name.insert(4, team_name_score[1])
                 #print(team_id, team_name)
                 if team_name[1] >= '16:00':
                     team_name[1] = date_str + ' ' + team_name[1]
@@ -229,19 +248,29 @@ class Spider(object):
         # self.team_list.to_excel('国家队ID.xlsx', index=False)
 
     def get_all_team_data(self):
-        # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
-        self.get_team_ids('2021-08-09')
         # 循环爬取每一支队的比赛数据
         data = []
+        datas = []
+        # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
+        datestart = '2021-08-09'
+        dateend = '2021-08-16'
+        self.get_team_ids(datestart)
         for i, [team_data] in enumerate(self.team_list):
-            print(i, team_data)
-            df = self.get_team_data(team_data)
-            data.append(df)
-        #output = pd.concat(data)
-        #output.reset_index(drop=True, inplace=True)
+            #print(i, team_data)
+            self.get_team_data(team_data)
+            data.append(team_data)
+        print('=========================================================')
+        print(data)
+        df = pd.DataFrame(data,
+                          columns=['赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
+                                   '初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'])
+        datas.append(df)
+        output = pd.concat(datas)
+        output.reset_index(drop=True, inplace=True)
         # print(output)
-        #output.to_csv('data_2018WorldCup.csv', index=False, encoding='utf-8')
+        output.to_csv('data_'+ datestart + '_' + dateend + '.csv', index=False, encoding='utf-8')
         self.driver.close()
+        print(datestart + 'to' + dateend + 'over')
 
 if __name__ == "__main__":
     spider = Spider()
