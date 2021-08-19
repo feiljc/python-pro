@@ -166,7 +166,7 @@ class Spider(object):
         #print("等待网页响应...")
         # 需要等一下，直到页面加载完成
         wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.ID, "odds")))
+        wait.until(EC.presence_of_element_located((By.ID, "odds2")))
 
         #print("正在获取网页数据...")
         soup = BeautifulSoup(browser.page_source, "lxml")
