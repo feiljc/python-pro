@@ -278,8 +278,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-07-01'
-        dateendstr = '2021-07-31'
+        datestartstr = '2021-06-01'
+        dateendstr = '2021-06-14'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
