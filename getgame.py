@@ -35,7 +35,7 @@ class Spider(object):
 
     def get_team_odd_oddslist(self, team_data):
         url = 'http://op1.win007.com/oddslist/' + team_data[0] + '.htm'
-        print('get_team_odd_oddslist:' + url)
+        #print('get_team_odd_oddslist:' + url)
         # 打开chrome浏览器（需提前安装好chromedriver）
         browser = webdriver.Chrome()
         #print("正在打开网页...")
@@ -220,16 +220,25 @@ class Spider(object):
         teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
         weekday = ''
+        wd = datetime.now().weekday()
+        week_list = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+        week_map = dict(enumerate(week_list))
+        wd_now = week_map[wd]
+        flag = 0
         for team in teams:
             team_id = team.get_attribute("id")
             if len(team_id) == 0:
-                if team.text.find('星期') > -1:
+                if team.text.find(wd_now) > -1:
                     weekd = team.text.split()
                     weekday = weekd[0].lstrip()
                     weekday = datetime.strptime(weekd[0].lstrip(), '%Y年%m月%d日').date()
                     weekday = datetime.strftime(weekday,'%Y-%m-%d')
+                    flag = 1
                 else:
+                    flag = 0
                     continue
+            if flag == 0:
+                continue
             index1 = team_id.find('tr1')
             if index1 <= -1:
                 continue
@@ -246,7 +255,7 @@ class Spider(object):
                     date_s = datetime.now().date()
                     #datetime_object = (date_s + timedelta(days=-1)).strftime("%Y-%m-%d")
                     if team_name[1] < '11:00' or team_name[1] > '21:00':
-                        continue
+                        team_name[1] = weekday + ' 20:00'
                     else:
                         team_name[1] = weekday + ' ' + team_name[1]
                     data.append([team_id + team_name])
