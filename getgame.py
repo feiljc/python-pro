@@ -219,10 +219,17 @@ class Spider(object):
         self.driver.get(main_url)
         teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
+        weekday = ''
         for team in teams:
             team_id = team.get_attribute("id")
             if len(team_id) == 0:
-                continue
+                if team.text.find('星期') > -1:
+                    weekd = team.text.split()
+                    weekday = weekd[0].lstrip()
+                    weekday = datetime.strptime(weekd[0].lstrip(), '%Y年%m月%d日').date()
+                    weekday = datetime.strftime(weekday,'%Y-%m-%d')
+                else:
+                    continue
             index1 = team_id.find('tr1')
             if index1 <= -1:
                 continue
@@ -236,12 +243,12 @@ class Spider(object):
                     team_name = team_name[1:6]
                     del team_name[3]
                     #print(team_id, team_name)
-                    data_s = datetime.now().date()
-                    if team_name[1] >= '16:00':
-                        team_name[1] = str(data_s) + ' ' + team_name[1]
+                    date_s = datetime.now().date()
+                    #datetime_object = (date_s + timedelta(days=-1)).strftime("%Y-%m-%d")
+                    if team_name[1] < '11:00' or team_name[1] > '21:00':
+                        continue
                     else:
-                        datetime_object = (data_s+ timedelta(days=1)).strftime("%Y-%m-%d")
-                        team_name[1] = datetime_object + ' ' + team_name[1]
+                        team_name[1] = weekday + ' ' + team_name[1]
                     data.append([team_id + team_name])
         self.team_list = data
         # self.team_list = pd.DataFrame(data, columns=['team_name', 'team_id'])

@@ -227,8 +227,17 @@ class Spider(object):
         self.driver.get(main_url)
         teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
+        weekday = ''
         for team in teams:
             team_id = team.get_attribute("id")
+            if len(team_id) == 0:
+                if team.text.find('星期') > -1:
+                    weekd = team.text.split()
+                    weekday = weekd[0].lstrip()
+                    weekday = datetime.strptime(weekd[0].lstrip(), '%Y年%m月%d日').date()
+                    weekday = datetime.strftime(weekday,'%Y-%m-%d')
+                else:
+                    continue
             index1 = team_id.find('tr1')
             if index1 <= -1:
                 continue
@@ -246,11 +255,19 @@ class Spider(object):
                 team_name[3] = team_name_score[0]
                 team_name.insert(4, team_name_score[1])
                 #print(team_id, team_name)
-                if team_name[1] >= '16:00':
-                    team_name[1] = date_str + ' ' + team_name[1]
+                if team_name[1] < '11:00' or team_name[1] > '21:00':
+                    continue
                 else:
-                    datetime_object = (date_s + timedelta(days=1)).strftime("%Y-%m-%d")
-                    team_name[1] = str(datetime_object) + ' ' + team_name[1]
+                    team_name[1] = weekday + ' ' + team_name[1]
+                '''
+                if team_name[1] < '09:00':
+                    datetime_object = (date_s + timedelta(days=-1)).strftime("%Y-%m-%d")
+                    team_name[1] = str(datetime_object) + ' 22:00'
+                elif team_name[1] >= '22:00':
+                    team_name[1] = date_str + ' 22:00'
+                else:
+                    team_name[1] = date_str + ' ' + team_name[1]
+                    '''
                 data.append([team_id + team_name])
         self.team_list = data
         # self.team_list = pd.DataFrame(data, columns=['team_name', 'team_id'])
@@ -260,9 +277,9 @@ class Spider(object):
         # 循环爬取每一支队的比赛数据
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
-
-        datestartstr = '2021-06-06'
-        dateendstr = '2021-06-06'
+        print(datetime.now())
+        datestartstr = '2021-07-01'
+        dateendstr = '2021-07-31'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
@@ -288,6 +305,7 @@ class Spider(object):
         output.reset_index(drop=True, inplace=True)
         # print(output)
         output.to_csv('data_'+ datestartstr + '_' + dateendstr + '.csv', index=False, encoding='utf-8')
+        print(datetime.now())
         print(datestartstr + 'to' + dateendstr + 'over')
 
 if __name__ == "__main__":
