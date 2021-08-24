@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
@@ -28,7 +29,9 @@ class Spider(object):
     def __init__(self):
         ## setup
         # self.base_url = base_url
-        self.driver = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(30)
         self.verificationErrors = []
         self.accept_next_alert = True
@@ -37,7 +40,9 @@ class Spider(object):
         url = 'http://op1.win007.com/oddslist/' + team_data[0] + '.htm'
         #print('get_team_odd_oddslist:' + url)
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         #print("正在打开网页...")
         browser.get(url)
         #print("等待网页响应...")
@@ -67,7 +72,9 @@ class Spider(object):
 
     def get_team_odd_OddsHistory(self, team_data, oddurl):
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         # browser = webdriver.PhantomJS()
         #print("正在打开网页...")
         browser.get(oddurl)
@@ -113,6 +120,8 @@ class Spider(object):
                 #print(team_data_s)
                 team_data += odd_data[0:3]
                 break
+        if len(team_data) < 10:
+            team_data += odddatas[-1][0:3]
         #print(team_data)
         return 1
 
@@ -127,7 +136,9 @@ class Spider(object):
     def get_team_asian_asianlist(self, team_data):
         url = 'http://vip.win007.com/AsianOdds_n.aspx?id=' + team_data[0]
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         #print("正在打开网页...")
         browser.get(url)
         #print("等待网页响应...")
@@ -158,7 +169,9 @@ class Spider(object):
 
     def get_team_odd_asianHistory(self, team_data, oddurl):
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         # browser = webdriver.PhantomJS()
         #print("正在打开网页...")
         browser.get(oddurl)
@@ -192,6 +205,8 @@ class Spider(object):
             if odd_data_s <= team_data_s:
                 team_data += odddatastr[1:4]
                 break
+        if len(team_data) < 16:
+            team_data += odddatas[-1].split()[0:3]
         #print(team_data)
         return 1
 
@@ -269,7 +284,7 @@ class Spider(object):
         data = []
         self.get_team_ids('http://jc.win007.com/index.aspx')
         for i, [team_data] in enumerate(self.team_list):
-            #print(i, team_data)
+            print(i, team_data)
             reda = self.get_team_data(team_data)
             if reda == 0:
                 continue

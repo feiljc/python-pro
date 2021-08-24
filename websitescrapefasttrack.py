@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
@@ -31,7 +32,9 @@ class Spider(object):
     def __init__(self):
         ## setup
         # self.base_url = base_url
-        self.driver = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        self.driver = webdriver.Chrome(options=chrome_options)
         self.driver.implicitly_wait(30)
         self.verificationErrors = []
         self.accept_next_alert = True
@@ -40,13 +43,18 @@ class Spider(object):
         url = 'http://op1.win007.com/oddslist/' + team_data[0] + '.htm'
         #print('get_team_odd_oddslist:' + url)
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         #print("正在打开网页...")
         browser.get(url)
         #print("等待网页响应...")
         # 需要等一下，直到页面加载完成
+
+
         wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "tcenter")))
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "tcenter")), 'visible')
+
 
         #print("正在获取网页数据...")
         soup = BeautifulSoup(browser.page_source, "lxml")
@@ -70,7 +78,9 @@ class Spider(object):
 
     def get_team_odd_OddsHistory(self, team_data, oddurl):
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         # browser = webdriver.PhantomJS()
         #print("正在打开网页...")
         browser.get(oddurl)
@@ -116,6 +126,8 @@ class Spider(object):
                 #print(team_data_s)
                 team_data += odd_data[0:3]
                 break
+        if len(team_data) < 12:
+            team_data += odddatas[-1][0:3]
         #print(team_data)
         return 1
 
@@ -130,7 +142,10 @@ class Spider(object):
     def get_team_asian_asianlist(self, team_data):
         url = 'http://vip.win007.com/AsianOdds_n.aspx?id=' + team_data[0]
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        #try:
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         #print("正在打开网页...")
         browser.get(url)
         #print("等待网页响应...")
@@ -141,7 +156,7 @@ class Spider(object):
         #print("正在获取网页数据...")
         soup = BeautifulSoup(browser.page_source, "lxml")
         browser.close()
-
+        #except
         oddurl = 0
         asiantrs = soup.findAll('tr')
         for asiantr in asiantrs:
@@ -159,7 +174,9 @@ class Spider(object):
 
     def get_team_odd_asianHistory(self, team_data, oddurl):
         # 打开chrome浏览器（需提前安装好chromedriver）
-        browser = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
         # browser = webdriver.PhantomJS()
         #print("正在打开网页...")
         browser.get(oddurl)
@@ -194,6 +211,8 @@ class Spider(object):
                 team_data += odddatastr[1:4]
                 break
         #print(team_data)
+        if len(team_data) < 17:
+            team_data += odddatas[-1].split()[0:3]
         return 1
 
     def get_team_asian_data(self, team_data):
@@ -278,8 +297,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-06-01'
-        dateendstr = '2021-06-14'
+        datestartstr = '2021-08-20'
+        dateendstr = '2021-08-23'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
@@ -294,7 +313,7 @@ class Spider(object):
                     continue
                 data.append(team_data)
             print('=========================================================')
-            #print(data)
+            print(data)
             df = pd.DataFrame(data,
                               columns=['赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
                                        '初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'])
