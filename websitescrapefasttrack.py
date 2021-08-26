@@ -297,8 +297,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-08-20'
-        dateendstr = '2021-08-23'
+        datestartstr = '2020-01-01'
+        dateendstr = '2020-01-31'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
@@ -313,10 +313,13 @@ class Spider(object):
                     continue
                 data.append(team_data)
             print('=========================================================')
-            print(data)
+            #print(data)
+            #'赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
+            #'初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'
             df = pd.DataFrame(data,
-                              columns=['赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
-                                       '初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'])
+                              columns=['events', 'stime', 'hometeam', 'homeScores', 'visitorScores', 'visitorteam', 'firstWinIndemnity', 'firstFlatIndemnity',
+                                       'firstLostIndemnity', 'finalWinIndemnity', 'finalFlatIndemnity', 'finalLostIndemnity', 'firstUpWater', 'firstPlate',
+                                       'firstDownWater', 'finalUpWater', 'finalPlate', 'finalDownWater'])
             datas.append(df)
             datestart += timedelta(days=1)
         self.driver.close()
