@@ -117,7 +117,8 @@ class Spider(object):
 
         #print(odddatas)
         #print(team_data)
-        team_data += odddatas[-1][0:3]
+        tlist = odddatas[-1][0:3]
+        team_data += tlist
         datas = ''
         #team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
         for odd_data in odddatas:
@@ -133,6 +134,7 @@ class Spider(object):
         #if len(team_data) < 12:
             #team_data += odddatas[-1][0:3]
         #print(datas)
+        datas = datas.replace(tlist[0] + '_' + tlist[1] + '_' + tlist[2] + '|', '')
         team_data.append(datas)
         return 1
 
@@ -203,8 +205,8 @@ class Spider(object):
             #print(oddstr.text)
             if oddstr.text.find('即') >= 0:
                 odddatas.append(oddstr.text)
-
-        team_data += odddatas[-1].split()[0:3]
+        tlist = odddatas[-1].split()[0:3]
+        team_data += tlist
         #team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
         datas = ''
         itercars = iter(odddatas)
@@ -220,6 +222,7 @@ class Spider(object):
                 #team_data += odddatastr[1:4]
                # break
         #print(datas)
+        datas = datas.replace(tlist[0] + '_' + tlist[1] + '_' + tlist[2] + '|', '')
         team_data.append(datas)
         #if len(team_data) < 17:
             #team_data += odddatas[-1].split()[0:3]
@@ -304,8 +307,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-08-06'
-        dateendstr = '2021-08-15'
+        datestartstr = '2021-08-01'
+        dateendstr = '2021-08-10'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
