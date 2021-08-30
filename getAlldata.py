@@ -118,17 +118,22 @@ class Spider(object):
         #print(odddatas)
         #print(team_data)
         team_data += odddatas[-1][0:3]
-        team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
+        datas = ''
+        #team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
         for odd_data in odddatas:
-            odd_data_s = datetime.strptime(odd_data[-1], '%Y-%m-%d %H:%M')
-            if odd_data_s <= team_data_s:
+            #odd_data_s = datetime.strptime(odd_data[-1], '%Y-%m-%d %H:%M')
+            if len(datas) > 0:
+                datas = '|' + datas
+            datas = odd_data[0] + '_' + odd_data[1]  + '_' + odd_data[2] + datas
+            #if odd_data_s <= team_data_s:
                 #print(odd_data_s)
                 #print(team_data_s)
-                team_data += odd_data[0:3]
-                break
-        if len(team_data) < 12:
-            team_data += odddatas[-1][0:3]
-        #print(team_data)
+            #team_data += odd_data[0:3]
+                #break
+        #if len(team_data) < 12:
+            #team_data += odddatas[-1][0:3]
+        #print(datas)
+        team_data.append(datas)
         return 1
 
     def get_team_odd_data(self, team_data):
@@ -200,19 +205,24 @@ class Spider(object):
                 odddatas.append(oddstr.text)
 
         team_data += odddatas[-1].split()[0:3]
-        team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
+        #team_data_s = datetime.strptime(team_data[2], '%Y-%m-%d %H:%M') + timedelta(hours=-1)
+        datas = ''
         itercars = iter(odddatas)
         next(itercars)
         for odddata in itercars:
             odddatastr = odddata.split('\n')
+            if len(datas) > 0:
+                datas = '|' + datas
+            datas = odddatastr[1] + '_' + odddatastr[2] + '_' + odddatastr[3] + datas
             #print(odddatastr)
-            odd_data_s = datetime.strptime(str(datetime.now().year) + '-' + odddatastr[4], '%Y-%m-%d %H:%M')
-            if odd_data_s <= team_data_s:
-                team_data += odddatastr[1:4]
-                break
-        #print(team_data)
-        if len(team_data) < 17:
-            team_data += odddatas[-1].split()[0:3]
+            #odd_data_s = datetime.strptime(str(datetime.now().year) + '-' + odddatastr[4], '%Y-%m-%d %H:%M')
+            #if odd_data_s <= team_data_s:
+                #team_data += odddatastr[1:4]
+               # break
+        #print(datas)
+        team_data.append(datas)
+        #if len(team_data) < 17:
+            #team_data += odddatas[-1].split()[0:3]
         return 1
 
     def get_team_asian_data(self, team_data):
@@ -230,13 +240,14 @@ class Spider(object):
         if self.get_team_asian_data(team_data) == 0:
             return 0
         del team_data[0]
-        for i, value in enumerate(team_data):
+
+        '''for i, value in enumerate(team_data):
             if (6 <= i <= 12) or (14 <= i <= 15) or i == 17:
                 value = float(value)
             elif i == 3 or i == 4:
                 value = int(value)
             else:
-                value = str(value.encode('utf-8'))
+                value = str(value.encode('utf-8'))'''
         return team_data
 
     def get_team_ids(self, date_str):
@@ -247,6 +258,7 @@ class Spider(object):
         teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
         weekday = ''
+        wday = ''
         for team in teams:
             team_id = team.get_attribute("id")
             if len(team_id) == 0:
@@ -254,7 +266,9 @@ class Spider(object):
                     weekd = team.text.split()
                     weekday = weekd[0].lstrip()
                     weekday = datetime.strptime(weekd[0].lstrip(), '%Y年%m月%d日').date()
+                    wday = weekday + timedelta(days=1)
                     weekday = datetime.strftime(weekday,'%Y-%m-%d')
+                    wday = datetime.strftime(wday,'%Y-%m-%d')
                 else:
                     continue
             index1 = team_id.find('tr1')
@@ -274,21 +288,14 @@ class Spider(object):
                 team_name[3] = team_name_score[0]
                 team_name.insert(4, team_name_score[1])
                 #print(team_id, team_name)
-                if team_name[1] < '11:00' or team_name[1] > '21:00':
-                    continue
+                if team_name[1] <= '11:00' and team_name[1] >= '00:00':
+                    team_name[1] = wday + ' ' + team_name[1]
                 else:
                     team_name[1] = weekday + ' ' + team_name[1]
-                '''
-                if team_name[1] < '09:00':
-                    datetime_object = (date_s + timedelta(days=-1)).strftime("%Y-%m-%d")
-                    team_name[1] = str(datetime_object) + ' 22:00'
-                elif team_name[1] >= '22:00':
-                    team_name[1] = date_str + ' 22:00'
-                else:
-                    team_name[1] = date_str + ' ' + team_name[1]
-                    '''
                 data.append([team_id + team_name])
+        #print(data)
         self.team_list = data
+
         # self.team_list = pd.DataFrame(data, columns=['team_name', 'team_id'])
         # self.team_list.to_excel('国家队ID.xlsx', index=False)
 
@@ -297,8 +304,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2019-08-01'
-        dateendstr = '2019-08-31'
+        datestartstr = '2021-08-06'
+        dateendstr = '2021-08-15'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
@@ -314,19 +321,18 @@ class Spider(object):
                 data.append(team_data)
             print('=========================================================')
             #print(data)
-            #'赛事', '时间', '主队', '主队进球', '客队进球', '客队', '初胜赔', '初平赔', '初负赔', '终胜赔', '终平赔', '终负赔',
-            #'初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'
+            #'赛事', '时间', '主队', '主队进球', '客队进球', '客队', '赔率', '盘口'
             df = pd.DataFrame(data,
-                              columns=['events', 'stime', 'hometeam', 'homeScores', 'visitorScores', 'visitorteam', 'firstWinIndemnity', 'firstFlatIndemnity',
-                                       'firstLostIndemnity', 'finalWinIndemnity', 'finalFlatIndemnity', 'finalLostIndemnity', 'firstUpWater', 'firstPlate',
-                                       'firstDownWater', 'finalUpWater', 'finalPlate', 'finalDownWater'])
+                              columns=['events', 'stime', 'hometeam', 'homeScores', 'visitorScores', 'visitorteam',
+                                       'firstWinIndemnity', 'firstFlatIndemnity', 'firstLostIndemnity', 'finalIndemnity',
+                                       'firstUpWater', 'firstPlate', 'firstDownWater', 'finalPlate'])
             datas.append(df)
             datestart += timedelta(days=1)
         self.driver.close()
         output = pd.concat(datas)
         output.reset_index(drop=True, inplace=True)
         # print(output)
-        output.to_csv('data_'+ datestartstr + '_' + dateendstr + '.csv', index=False, encoding='utf-8')
+        output.to_csv('data_' + datestartstr + '_' + dateendstr + '.csv', index=False, encoding='utf-8')
         print(datetime.now())
         print(datestartstr + 'to' + dateendstr + 'over')
 
