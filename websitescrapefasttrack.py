@@ -29,15 +29,6 @@ def is_chinese(string):
 
 class Spider(object):
 
-    def __init__(self):
-        ## setup
-        # self.base_url = base_url
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.implicitly_wait(30)
-        self.verificationErrors = []
-        self.accept_next_alert = True
 
     def get_team_odd_oddslist(self, team_data):
         url = 'http://op1.win007.com/oddslist/' + team_data[0] + '.htm'
@@ -243,8 +234,16 @@ class Spider(object):
         main_url = 'http://jc.win007.com/schedule.aspx?d=' + date_str
         #print(main_url)
         date_s = datetime.strptime(date_str, '%Y-%m-%d')
-        self.driver.get(main_url)
-        teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
+
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        browser = webdriver.Chrome(options=chrome_options)
+        browser.get(main_url)
+        wait = WebDriverWait(browser, 10)
+        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "content")), 'visible')
+        soup = BeautifulSoup(browser.page_source, "lxml")
+
+        teams = browser.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
         weekday = ''
         for team in teams:
@@ -288,6 +287,7 @@ class Spider(object):
                     team_name[1] = date_str + ' ' + team_name[1]
                     '''
                 data.append([team_id + team_name])
+        browser.close()
         self.team_list = data
         # self.team_list = pd.DataFrame(data, columns=['team_name', 'team_id'])
         # self.team_list.to_excel('国家队ID.xlsx', index=False)
@@ -322,7 +322,6 @@ class Spider(object):
                                        'firstDownWater', 'finalUpWater', 'finalPlate', 'finalDownWater'])
             datas.append(df)
             datestart += timedelta(days=1)
-        self.driver.close()
         output = pd.concat(datas)
         output.reset_index(drop=True, inplace=True)
         # print(output)
