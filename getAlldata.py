@@ -36,20 +36,16 @@ class Spider(object):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         browser = webdriver.Chrome(options=chrome_options)
-        #print("正在打开网页...")
-        browser.get(url)
-        #print("等待网页响应...")
-        # 需要等一下，直到页面加载完成
-
-
-        wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "tcenter")), 'visible')
-
-
-        #print("正在获取网页数据...")
-        soup = BeautifulSoup(browser.page_source, "lxml")
-        browser.close()
-
+        browser.set_page_load_timeout(10)
+        browser.set_script_timeout(10)
+        try:
+            browser.get(url)
+            wait = WebDriverWait(browser, 10)
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "tcenter")), 'visible')
+            soup = BeautifulSoup(browser.page_source, "lxml")
+            browser.close()
+        except:
+            pass
         oddstr_1129 = soup.find('tr', id='oddstr_1129')
         if oddstr_1129 is None:
             return 0
@@ -71,22 +67,18 @@ class Spider(object):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         browser = webdriver.Chrome(options=chrome_options)
-        # browser = webdriver.PhantomJS()
-        #print("正在打开网页...")
-        browser.get(oddurl)
+        #browser.set_page_load_timeout(10)
+        browser.set_script_timeout(10)
+        try:
+            browser.get(oddurl)
+            wait = WebDriverWait(browser, 10)
+            wait.until(EC.presence_of_element_located((By.ID, "odds")))
+            soup = BeautifulSoup(browser.page_source, "lxml")
+            browser.close()
 
-        #print("等待网页响应...")
-        # 需要等一下，直到页面加载完成
-        wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.ID, "odds")))
-
-        #print("正在获取网页数据...")
-        soup = BeautifulSoup(browser.page_source, "lxml")
-        browser.close()
-
+        except:
+            pass
         oddstrs = soup.findAll('tr')
-        #print(oddstrs)
-
         odddatas = []
         for oddstr in oddstrs:
             oddstds = oddstr.findAll("td")
@@ -143,17 +135,16 @@ class Spider(object):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         browser = webdriver.Chrome(options=chrome_options)
-        #print("正在打开网页...")
-        browser.get(url)
-        #print("等待网页响应...")
-        # 需要等一下，直到页面加载完成
-        wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.ID, "odds")))
-
-        #print("正在获取网页数据...")
-        soup = BeautifulSoup(browser.page_source, "lxml")
-        browser.close()
-        #except
+        browser.set_page_load_timeout(10)
+        browser.set_script_timeout(10)
+        try:
+            browser.get(url)
+            wait = WebDriverWait(browser, 10)
+            wait.until(EC.presence_of_element_located((By.ID, "odds")))
+            soup = BeautifulSoup(browser.page_source, "lxml")
+            browser.close()
+        except:
+            pass
         oddurl = 0
         asiantrs = soup.findAll('tr')
         for asiantr in asiantrs:
@@ -174,18 +165,16 @@ class Spider(object):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         browser = webdriver.Chrome(options=chrome_options)
-        # browser = webdriver.PhantomJS()
-        #print("正在打开网页...")
-        browser.get(oddurl)
-
-        #print("等待网页响应...")
-        # 需要等一下，直到页面加载完成
-        wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.ID, "odds2")))
-
-        #print("正在获取网页数据...")
-        soup = BeautifulSoup(browser.page_source, "lxml")
-        browser.close()
+        browser.set_page_load_timeout(10)
+        browser.set_script_timeout(10)
+        try:
+            browser.get(oddurl)
+            wait = WebDriverWait(browser, 10)
+            wait.until(EC.presence_of_element_located((By.ID, "odds2")))
+            soup = BeautifulSoup(browser.page_source, "lxml")
+            browser.close()
+        except:
+            pass
 
         oddstrs = soup.findAll('tr')
         #print(oddstrs)
@@ -251,13 +240,14 @@ class Spider(object):
         chrome_options = Options()
         chrome_options.add_argument('--headless')
         browser = webdriver.Chrome(options=chrome_options)
-        browser.get(main_url)
-        wait = WebDriverWait(browser, 10)
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "content")), 'visible')
-        soup = BeautifulSoup(browser.page_source, "lxml")
-
-        #teams = soup.find('tr', id='table_live')
-        #self.driver.get(main_url)
+        browser.set_page_load_timeout(10)
+        browser.set_script_timeout(10)
+        try:
+            browser.get(main_url)
+            wait = WebDriverWait(browser, 10)
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "content")), 'visible')
+        except:
+            pass
         teams = browser.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
         data = []
         weekday = ''
