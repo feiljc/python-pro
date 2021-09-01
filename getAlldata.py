@@ -38,6 +38,7 @@ class Spider(object):
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
+        soup = None
         try:
             browser.get(url)
             wait = WebDriverWait(browser, 10)
@@ -46,6 +47,8 @@ class Spider(object):
             browser.close()
         except:
             pass
+        if soup == None:
+            return 0
         oddstr_1129 = soup.find('tr', id='oddstr_1129')
         if oddstr_1129 is None:
             return 0
@@ -69,6 +72,7 @@ class Spider(object):
         browser = webdriver.Chrome(options=chrome_options)
         #browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
+        soup = None
         try:
             browser.get(oddurl)
             wait = WebDriverWait(browser, 10)
@@ -78,6 +82,8 @@ class Spider(object):
 
         except:
             pass
+        if soup == None:
+            return 0
         oddstrs = soup.findAll('tr')
         odddatas = []
         for oddstr in oddstrs:
@@ -137,6 +143,7 @@ class Spider(object):
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
+        soup = None
         try:
             browser.get(url)
             wait = WebDriverWait(browser, 10)
@@ -145,6 +152,8 @@ class Spider(object):
             browser.close()
         except:
             pass
+        if soup == None:
+            return 0
         oddurl = 0
         asiantrs = soup.findAll('tr')
         for asiantr in asiantrs:
@@ -164,9 +173,11 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
+        soup = None
         try:
             browser.get(oddurl)
             wait = WebDriverWait(browser, 10)
@@ -175,7 +186,8 @@ class Spider(object):
             browser.close()
         except:
             pass
-
+        if soup == None:
+            return 0
         oddstrs = soup.findAll('tr')
         #print(oddstrs)
 
@@ -298,8 +310,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-01-01'
-        dateendstr = '2021-06-30'
+        datestartstr = '2021-05-16'
+        dateendstr = '2021-05-17'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
