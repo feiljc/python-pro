@@ -85,6 +85,8 @@ class Spider(object):
         if soup == None:
             return 0
         oddstrs = soup.findAll('tr')
+        if len(oddstrs) == 0:
+            return 0
         odddatas = []
         for oddstr in oddstrs:
             oddstds = oddstr.findAll("td")
@@ -123,6 +125,8 @@ class Spider(object):
             #team_data += odddatas[-1][0:3]
         #print(datas)
         datas = datas.replace(tlist[0] + '_' + tlist[1] + '_' + tlist[2] + '|', '')
+        if len(datas) == 0:
+            return 0
         team_data.append(datas)
         return 1
 
@@ -190,7 +194,8 @@ class Spider(object):
             return 0
         oddstrs = soup.findAll('tr')
         #print(oddstrs)
-
+        if len(oddstrs) == 0:
+            return 0
         odddatas = []
         for oddstr in oddstrs:
             #print(oddstr.text)
@@ -214,6 +219,8 @@ class Spider(object):
                # break
         #print(datas)
         datas = datas.replace(tlist[0] + '_' + tlist[1] + '_' + tlist[2] + '|', '')
+        if len(datas) == 0:
+            return 0
         team_data.append(datas)
         #if len(team_data) < 17:
             #team_data += odddatas[-1].split()[0:3]
@@ -310,8 +317,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-05-16'
-        dateendstr = '2021-05-17'
+        datestartstr = '2021-08-01'
+        dateendstr = '2021-08-05'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 
