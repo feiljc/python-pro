@@ -35,6 +35,8 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
@@ -69,6 +71,8 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         #browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
@@ -144,6 +148,8 @@ class Spider(object):
         #try:
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
@@ -177,7 +183,8 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
-
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
@@ -258,6 +265,8 @@ class Spider(object):
 
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         browser.set_page_load_timeout(10)
         browser.set_script_timeout(10)
@@ -317,8 +326,8 @@ class Spider(object):
 
         # 先通过世界杯主页获取所有32只队的ID（构成球队URL）
         print(datetime.now())
-        datestartstr = '2021-08-01'
-        dateendstr = '2021-08-05'
+        datestartstr = '2019-09-05'
+        dateendstr = '2019-09-09'
         datestart = datetime.strptime(datestartstr, '%Y-%m-%d')
         dateend = datetime.strptime(dateendstr, '%Y-%m-%d')
 

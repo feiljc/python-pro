@@ -26,22 +26,14 @@ def is_chinese(string):
 
 class Spider(object):
 
-    def __init__(self):
-        ## setup
-        # self.base_url = base_url
-        chrome_options = Options()
-        chrome_options.add_argument('--headless')
-        self.driver = webdriver.Chrome(options=chrome_options)
-        self.driver.implicitly_wait(30)
-        self.verificationErrors = []
-        self.accept_next_alert = True
-
     def get_team_odd_oddslist(self, team_data):
         url = 'http://op1.win007.com/oddslist/' + team_data[0] + '.htm'
         #print('get_team_odd_oddslist:' + url)
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         #print("正在打开网页...")
         browser.get(url)
@@ -74,6 +66,8 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         # browser = webdriver.PhantomJS()
         #print("正在打开网页...")
@@ -138,6 +132,8 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         #print("正在打开网页...")
         browser.get(url)
@@ -171,6 +167,8 @@ class Spider(object):
         # 打开chrome浏览器（需提前安装好chromedriver）
         chrome_options = Options()
         chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
         browser = webdriver.Chrome(options=chrome_options)
         # browser = webdriver.PhantomJS()
         #print("正在打开网页...")
@@ -231,8 +229,24 @@ class Spider(object):
 
     def get_team_ids(self, main_url):
         #print(main_url)
-        self.driver.get(main_url)
-        teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
+        #self.driver.get(main_url)
+        #teams = self.driver.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
+
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        browser = webdriver.Chrome(options=chrome_options)
+        browser.set_page_load_timeout(10)
+        browser.set_script_timeout(10)
+        try:
+            browser.get(main_url)
+            wait = WebDriverWait(browser, 10)
+            wait.until(EC.presence_of_element_located((By.CLASS_NAME, "content")), 'visible')
+        except:
+            pass
+        teams = browser.find_elements_by_xpath("//*[@id='table_live']/tbody/tr")
+
         data = []
         weekday = ''
         wd = datetime.now().weekday()
@@ -296,7 +310,7 @@ class Spider(object):
                                    '初上盘水', '初盘口', '初下盘水', '终上盘水', '终盘口', '终下盘水'])
         datas.append(df)
 
-        self.driver.close()
+        #self.driver.close()
         output = pd.concat(datas)
         output.reset_index(drop=True, inplace=True)
         # print(output)
